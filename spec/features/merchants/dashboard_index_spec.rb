@@ -1,8 +1,106 @@
 require 'rails_helper'
 
 RSpec.describe 'As a merchant' do
-  before :each do
+  describe 'When I visit my merchant dashboard' do
+    it 'I see the name of my merchant' do
+      setup_merchant
+      visit merchant_dashboard_index_path(@merchant)
+
+      expect(current_path).to eq("/merchants/#{@merchant.id}/dashboard")
+
+      expect(page).to have_content(@merchant.name)
+    end
+
+    it 'I see link to my merchant items index (/merchant/merchant_id/items)' do
+      setup_merchant
+      visit merchant_dashboard_index_path(@merchant)
+
+      within(".nav") do
+        expect(page).to have_link('My Items')
+        click_link('My Items')
+        expect(current_path).to eq(merchant_items_path(@merchant))
+      end
+    end
+
+    it 'I see a link to my merchant invoices index (/merchant/merchant_id/invoices)' do
+      setup_merchant
+      visit merchant_dashboard_index_path(@merchant)
+
+      within(".nav") do
+        expect(page).to have_link('My Invoices')
+        click_link('My Invoices')
+        expect(current_path).to eq(merchant_invoices_path(@merchant))
+      end
+    end
+
+    it 'I see top 5 customers full name' do
+      setup_data
+      visit merchant_dashboard_index_path(@merchant)
+
+      expect(page).to have_content(@customer_1.full_name)
+      expect(page).to have_content(@customer_2.full_name)
+      expect(page).to have_content(@customer_3.full_name)
+      expect(page).to have_content(@customer_4.full_name)
+      expect(page).to have_content(@customer_5.full_name)
+
+      expect(page).not_to have_content(@customer_6.full_name)
+      expect(page).not_to have_content(@customer_7.full_name)
+      expect(page).not_to have_content(@customer_8.full_name)
+      expect(page).not_to have_content(@customer_9.full_name)
+      expect(page).not_to have_content(@customer_10.full_name)
+    end
+
+    it 'I see number of purches next to each customer' do
+      setup_data
+      visit merchant_dashboard_index_path(@merchant)
+
+      within("#customer-#{@customer_1.id}") do
+        expect(page).to have_content(@customer_1.transaction_count)
+      end
+
+      within("#customer-#{@customer_2.id}") do
+        expect(page).to have_content(@customer_2.transaction_count)
+      end
+
+      within("#customer-#{@customer_3.id}") do
+        expect(page).to have_content(@customer_3.transaction_count)
+      end
+
+      within("#customer-#{@customer_4.id}") do
+        expect(page).to have_content(@customer_4.transaction_count)
+      end
+
+      within("#customer-#{@customer_5.id}") do
+        expect(page).to have_content(@customer_5.transaction_count)
+      end
+    end
+
+    it 'I see a section for items ready to ship' do
+      setup_data
+      visit merchant_dashboard_index_path(@merchant)
+
+      expect(page).to have_content("Items Ready to Ship")
+      expect(page).to have_link("Invoice ##{@invoice_1.id}")
+    end
+
+    it 'shows link to view my bulk discounts' do
+      setup_merchant
+      visit merchant_dashboard_index_path(@merchant)
+
+      within('.nav') do
+        expect(page).to have_link('My Bulk Discounts')
+        click_link('My Bulk Discounts')
+        expect(current_path).to eq(merchant_bulk_discounts_path(@merchant))
+      end
+    end
+  end
+
+  def setup_merchant
     @merchant = create(:merchant)
+  end
+
+  def setup_data
+    setup_merchant
 
     @item = create(:item, merchant_id: @merchant.id)
     @item2 = create(:item, merchant_id: @merchant.id)
@@ -110,82 +208,5 @@ RSpec.describe 'As a merchant' do
     @customer_8 = create(:customer)
     @customer_9 = create(:customer)
     @customer_10 = create(:customer)
-  end
-
-  describe 'When I visit my merchant dashboard (/merchant/merchant_id/dashboard)' do
-    it 'I see the name of my merchant' do
-      visit merchant_dashboard_index_path(@merchant)
-
-      expect(current_path).to eq("/merchants/#{@merchant.id}/dashboard")
-
-      expect(page).to have_content(@merchant.name)
-    end
-
-    it 'I see link to my merchant items index (/merchant/merchant_id/items)' do
-      visit merchant_dashboard_index_path(@merchant)
-
-      within(".nav") do
-        expect(page).to have_link('My Items')
-        click_link('My Items')
-        expect(current_path).to eq(merchant_items_path(@merchant))
-      end
-    end
-
-    it 'I see a link to my merchant invoices index (/merchant/merchant_id/invoices)' do
-      visit merchant_dashboard_index_path(@merchant)
-
-      within(".nav") do
-        expect(page).to have_link('My Invoices')
-        click_link('My Invoices')
-        expect(current_path).to eq(merchant_invoices_path(@merchant))
-      end
-    end
-
-    it 'I see top 5 customers full name' do
-      visit merchant_dashboard_index_path(@merchant)
-
-      expect(page).to have_content(@customer_1.full_name)
-      expect(page).to have_content(@customer_2.full_name)
-      expect(page).to have_content(@customer_3.full_name)
-      expect(page).to have_content(@customer_4.full_name)
-      expect(page).to have_content(@customer_5.full_name)
-
-      expect(page).not_to have_content(@customer_6.full_name)
-      expect(page).not_to have_content(@customer_7.full_name)
-      expect(page).not_to have_content(@customer_8.full_name)
-      expect(page).not_to have_content(@customer_9.full_name)
-      expect(page).not_to have_content(@customer_10.full_name)
-    end
-
-    it 'I see number of purches next to each customer' do
-      visit merchant_dashboard_index_path(@merchant)
-
-      within("#customer-#{@customer_1.id}") do
-        expect(page).to have_content(@customer_1.transaction_count)
-      end
-
-      within("#customer-#{@customer_2.id}") do
-        expect(page).to have_content(@customer_2.transaction_count)
-      end
-
-      within("#customer-#{@customer_3.id}") do
-        expect(page).to have_content(@customer_3.transaction_count)
-      end
-
-      within("#customer-#{@customer_4.id}") do
-        expect(page).to have_content(@customer_4.transaction_count)
-      end
-
-      within("#customer-#{@customer_5.id}") do
-        expect(page).to have_content(@customer_5.transaction_count)
-      end
-    end
-
-    it 'I see a section for items ready to ship' do
-      visit merchant_dashboard_index_path(@merchant)
-
-      expect(page).to have_content("Items Ready to Ship")
-      expect(page).to have_link("Invoice ##{@invoice_1.id}")
-    end
   end
 end
