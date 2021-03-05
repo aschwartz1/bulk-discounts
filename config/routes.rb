@@ -16,4 +16,8 @@ Rails.application.routes.draw do
   end
 
   get '/', to: 'welcome#index'
+
+  resources :doctor, only: [:show] do
+    resources :caseload, only: [:create, :destroy]
+  end
 end
