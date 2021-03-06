@@ -1,0 +1,11 @@
+<div id='form'>
+  <%= form_with model: [:merchant, bulk_discount], local: true do |form| %>
+    <%= form.label :name %>
+    <%= form.text_field :name %><br>
+    <%= form.label :threshold %>
+    <%= form.number_field :threshold, step: 1 %><br>
+    <%= form.label :percent_discount, 'Percent Discount' %>
+    <%= form.number_field :percent_discount, step: 1 %><br>
+    <%= form.submit %>
+  <% end %>
+</div>
