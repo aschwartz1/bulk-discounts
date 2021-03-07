@@ -8,6 +8,7 @@ RSpec.describe "As a Factory Bot" do
     item = create(:item)
     invoice_item = create(:invoice_item)
     transaction = create(:transaction)
+    bulk_discount = create(:bulk_discount)
 
     expect(invoice.class).to eq(Invoice)
     expect(merchant.class).to eq(Merchant)
@@ -15,5 +16,6 @@ RSpec.describe "As a Factory Bot" do
     expect(item.class).to eq(Item)
     expect(invoice_item.class).to eq(InvoiceItem)
     expect(transaction.class).to eq(Transaction)
+    expect(bulk_discount.class).to eq(BulkDiscount)
   end
 end

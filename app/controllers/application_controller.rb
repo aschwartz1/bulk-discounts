@@ -1,7 +1,7 @@
 class ApplicationController < ActionController::Base
-before_action :repo_object,
-              :contributor_objects,
-              :pull_objects
+# before_action :repo_object,
+#               :contributor_objects,
+#               :pull_objects
 
   def repo_object
     @repo ||= ApiService.repo_object
