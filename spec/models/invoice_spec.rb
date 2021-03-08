@@ -8,7 +8,58 @@ RSpec.describe Invoice do
     it { should belong_to :customer }
   end
 
-  before :each do
+  describe 'instance methods' do
+    describe '#status_view_format' do
+      it "cleans up statuses so they are capitalize and have no symbols on view" do
+        invoice_a = create(:invoice, status: Invoice.statuses[:cancelled])
+        invoice_b = create(:invoice, status: Invoice.statuses[:completed])
+        invoice_c = create(:invoice, status: Invoice.statuses[:in_progress])
+
+        expect(invoice_a.status_view_format).to eq("Cancelled")
+        expect(invoice_b.status_view_format).to eq("Completed")
+        expect(invoice_c.status_view_format).to eq("In Progress")
+      end
+    end
+
+    describe '#created_at_view_format' do
+      it "cleans up statuses so they are capitalize and have no symbols on view" do
+        invoice_a = create(:invoice, created_at: Time.new(2021, 2, 24))
+
+        expect(invoice_a.created_at_view_format).to eq("Wednesday, February 24, 2021")
+      end
+    end
+
+    describe '#customer_full_name' do
+      it 'returns customers full name' do
+        setup_little_esty_shop
+        expect(@invoice_1.customer_full_name).to eq(@customer_1.full_name)
+      end
+    end
+
+    describe '#total_revenue' do
+      it 'returns total revenue from a specific invoice' do
+        setup_little_esty_shop
+        expect('%.2f' % @invoice_1.total_revenue).to eq('30.00')
+      end
+    end
+
+    describe '#total_revenue_with_discount' do
+      it 'test' do
+        # TODO
+      end
+    end
+  end
+
+  describe 'class methods' do
+    describe '::all_invoices_with_unshipped_items' do
+      it 'returns all invoices with unshipped items' do
+        setup_little_esty_shop
+        expect(Invoice.all_invoices_with_unshipped_items).to eq([@invoice_1, @invoice_21])
+      end
+    end
+  end
+
+  def setup_little_esty_shop
     @merchant = create(:merchant)
 
     @item_1 = create(:item, merchant_id: @merchant.id)
@@ -41,49 +92,93 @@ RSpec.describe Invoice do
     @transaction_31 = create(:transaction, result: Transaction.results[:success], invoice_id: @invoice_31.id)
     @transaction_32 = create(:transaction, result: Transaction.results[:success], invoice_id: @invoice_32.id)
     @ii_31 = create(:invoice_item, invoice_id: @invoice_31.id, status: InvoiceItem.statuses[:shipped])
-
   end
 
-  describe 'instance methods' do
-    describe '#status_view_format' do
-      it "cleans up statuses so they are capitalize and have no symbols on view" do
-        invoice_a = create(:invoice, status: Invoice.statuses[:cancelled])
-        invoice_b = create(:invoice, status: Invoice.statuses[:completed])
-        invoice_c = create(:invoice, status: Invoice.statuses[:in_progress])
+  def setup_discount_example_1
+    @customer = create(:customer)
+    @merchant = create(:merchant)
+    @item_1 = create(:item, merchant_id: @merchant.id)
+    @item_2 = create(:item, merchant_id: @merchant.id)
+    @invoice = create(:invoice, customer_id: @customer.id)
+    @invoice_item_1 = create(:invoice_item, invoice_id: @invoice.id, item_id: @item_1.id,
+                            status: InvoiceItem.statuses[:shipped], quantity: 5, unit_price: 1.00)
+    @invoice_item_2 = create(:invoice_item, invoice_id: @invoice.id, item_id: @item_2.id,
+                            status: InvoiceItem.statuses[:shipped], quantity: 5, unit_price: 1.00)
 
-        expect(invoice_a.status_view_format).to eq("Cancelled")
-        expect(invoice_b.status_view_format).to eq("Completed")
-        expect(invoice_c.status_view_format).to eq("In Progress")
-      end
-    end
+    @discount = create(:bulk_discount, threshold: 10, percent_discount: 20, merchant_id: @merchant.id)
 
-    describe '#created_at_view_format' do
-      it "cleans up statuses so they are capitalize and have no symbols on view" do
-        invoice_a = create(:invoice, created_at: Time.new(2021, 2, 24))
-
-        expect(invoice_a.created_at_view_format).to eq("Wednesday, February 24, 2021")
-      end
-    end
-
-    describe '#customer_full_name' do
-      it 'returns customers full name' do
-        expect(@invoice_1.customer_full_name).to eq(@customer_1.full_name)
-      end
-    end
-
-    describe '#total_revenue' do
-      it 'returns total revenue from a specific invoice' do
-        expect('%.2f' % @invoice_1.total_revenue).to eq('30.00')
-      end
-    end
+    # Result => no discounts applied
   end
 
-  describe 'class methods' do
-    describe '::all_invoices_with_unshipped_items' do
-      it 'returns all invoices with unshipped items' do
+  def setup_discount_example_2
+    @customer = create(:customer)
+    @merchant = create(:merchant)
+    @item_1 = create(:item, merchant_id: @merchant.id)
+    @item_2 = create(:item, merchant_id: @merchant.id)
+    @invoice = create(:invoice, customer_id: @customer.id)
+    @invoice_item_1 = create(:invoice_item, invoice_id: @invoice.id, item_id: @item_1.id,
+                            status: InvoiceItem.statuses[:shipped], quantity: 10, unit_price: 1.00)
+    @invoice_item_2 = create(:invoice_item, invoice_id: @invoice.id, item_id: @item_2.id,
+                            status: InvoiceItem.statuses[:shipped], quantity: 5, unit_price: 1.00)
 
-        expect(Invoice.all_invoices_with_unshipped_items).to eq([@invoice_1, @invoice_21])
-      end
-    end
+    @discount = create(:bulk_discount, threshold: 10, percent_discount: 20, merchant_id: @merchant.id)
+
+    # Result => item_1 discounted 20%
+  end
+
+  def setup_discount_example_3
+    @customer = create(:customer)
+    @merchant = create(:merchant)
+    @item_1 = create(:item, merchant_id: @merchant.id)
+    @item_2 = create(:item, merchant_id: @merchant.id)
+    @invoice = create(:invoice, customer_id: @customer.id)
+    @invoice_item_1 = create(:invoice_item, invoice_id: @invoice.id, item_id: @item_1.id,
+                            status: InvoiceItem.statuses[:shipped], quantity: 12, unit_price: 1.00)
+    @invoice_item_2 = create(:invoice_item, invoice_id: @invoice.id, item_id: @item_2.id,
+                            status: InvoiceItem.statuses[:shipped], quantity: 15, unit_price: 1.00)
+
+    @discount_1 = create(:bulk_discount, threshold: 10, percent_discount: 20, merchant_id: @merchant.id)
+    @discount_2 = create(:bulk_discount, threshold: 15, percent_discount: 30, merchant_id: @merchant.id)
+
+    # Result => item_1 discounted 20%, item_2 discounted 30%
+  end
+
+  def setup_discount_example_4
+    @customer = create(:customer)
+    @merchant = create(:merchant)
+    @item_1 = create(:item, merchant_id: @merchant.id)
+    @item_2 = create(:item, merchant_id: @merchant.id)
+    @invoice = create(:invoice, customer_id: @customer.id)
+    @invoice_item_1 = create(:invoice_item, invoice_id: @invoice.id, item_id: @item_1.id,
+                            status: InvoiceItem.statuses[:shipped], quantity: 12, unit_price: 1.00)
+    @invoice_item_2 = create(:invoice_item, invoice_id: @invoice.id, item_id: @item_2.id,
+                            status: InvoiceItem.statuses[:shipped], quantity: 15, unit_price: 1.00)
+
+    @discount_1 = create(:bulk_discount, threshold: 10, percent_discount: 20, merchant_id: @merchant.id)
+    @discount_2 = create(:bulk_discount, threshold: 15, percent_discount: 15, merchant_id: @merchant.id)
+
+    # Result => item_1 discounted 20%, item_2 discounted 20% (discount_2 can never be applied)
+  end
+
+  def setup_discount_example_5
+    @customer = create(:customer)
+    @merchant_a = create(:merchant)
+    @merchant_b = create(:merchant)
+    @item_a1 = create(:item, merchant_id: @merchant_a.id)
+    @item_a2 = create(:item, merchant_id: @merchant_a.id)
+    @item_b1 = create(:item, merchant_id: @merchant_b.id)
+    @invoice = create(:invoice, customer_id: @customer.id)
+    @invoice_item_1 = create(:invoice_item, invoice_id: @invoice.id, item_id: @item_a1.id,
+                            status: InvoiceItem.statuses[:shipped], quantity: 12, unit_price: 1.00)
+    @invoice_item_2 = create(:invoice_item, invoice_id: @invoice.id, item_id: @item_a2.id,
+                            status: InvoiceItem.statuses[:shipped], quantity: 15, unit_price: 1.00)
+    @invoice_item_3 = create(:invoice_item, invoice_id: @invoice.id, item_id: @item_b1.id,
+                            status: InvoiceItem.statuses[:shipped], quantity: 15, unit_price: 1.00)
+
+    @discount_1 = create(:bulk_discount, threshold: 10, percent_discount: 20, merchant_id: @merchant.id)
+    @discount_2 = create(:bulk_discount, threshold: 15, percent_discount: 30, merchant_id: @merchant.id)
+    # Merchant B has no discounts
+
+    # Result => item_a1 discounted 20%, item_a2 discounted 30%, item_b1 not discounted
   end
 end
