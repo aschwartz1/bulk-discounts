@@ -12,7 +12,11 @@
     <section id="invoice-item-<%= invoice_item.item.id %>">
       <p>Name: <%= invoice_item.item_name %></p>
       <p>Quantity: <%= invoice_item.quantity %></p>
-      <p>Sold For: $<%= '%.2f' % invoice_item.unit_price %></p>
+      <p>Sold For: $<%= '%.2f' % invoice_item.unit_price %>
+        <% if invoice_item.bulk_discount_id %>
+            | <%= link_to 'Applied Discount', merchant_bulk_discount_path(@merchant, invoice_item.bulk_discount_id) %>
+        <% end %>
+      </p>
       <p>Status: <%= invoice_item.status_view_format %></p>
 
       <%= form_with url: merchant_invoice_item_path(@merchant, invoice_item), method: :patch, params: { status: :status }, local: true do |f|%>

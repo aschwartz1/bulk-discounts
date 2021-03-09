@@ -110,5 +110,28 @@ RSpec.describe 'As a merchant' do
         expect(page).to have_select('status', selected: 'pending')
       end
     end
+
+    describe 'invoice items link to discount show page' do
+      it 'shows the link when a discount is applied' do
+        discount = create(:bulk_discount, threshold: 8, percent_discount: 50, merchant: @merchant_1)
+        visit merchant_invoice_path(@merchant_1, @invoice_3)
+
+        within "#invoice-item-#{@item_1.id}" do
+          expect(page).to have_link('Applied Discount')
+          click_link('Applied Discount')
+        end
+
+        expect(current_path).to eq(merchant_bulk_discount_path(@merchant_1, discount))
+      end
+
+      it 'does not show a link when there is no discount' do
+        discount = create(:bulk_discount, threshold: 8, percent_discount: 50, merchant: @merchant_1)
+        visit merchant_invoice_path(@merchant_1, @invoice_3)
+
+        within "#invoice-item-#{@item_3.id}" do
+          expect(page).to_not have_link('Applied Discount')
+        end
+      end
+    end
   end
 end
