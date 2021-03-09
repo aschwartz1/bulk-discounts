@@ -44,8 +44,10 @@ RSpec.describe Invoice do
     end
 
     describe '#total_revenue_with_discount' do
-      it 'test' do
-        # TODO
+      it 'can work when no discounts apply' do
+        setup_discount_example_1
+        expect(@invoice.total_revenue_with_discount).to eq('change to the number 15')
+        # TODO test the other examples
       end
     end
   end
@@ -101,13 +103,14 @@ RSpec.describe Invoice do
     @item_2 = create(:item, merchant_id: @merchant.id)
     @invoice = create(:invoice, customer_id: @customer.id)
     @invoice_item_1 = create(:invoice_item, invoice_id: @invoice.id, item_id: @item_1.id,
-                            status: InvoiceItem.statuses[:shipped], quantity: 5, unit_price: 1.00)
+                            status: InvoiceItem.statuses[:shipped], quantity: 5, unit_price: 2.00)
     @invoice_item_2 = create(:invoice_item, invoice_id: @invoice.id, item_id: @item_2.id,
                             status: InvoiceItem.statuses[:shipped], quantity: 5, unit_price: 1.00)
 
     @discount = create(:bulk_discount, threshold: 10, percent_discount: 20, merchant_id: @merchant.id)
 
     # Result => no discounts applied
+    # Total Revenue => 15
   end
 
   def setup_discount_example_2
@@ -121,9 +124,10 @@ RSpec.describe Invoice do
     @invoice_item_2 = create(:invoice_item, invoice_id: @invoice.id, item_id: @item_2.id,
                             status: InvoiceItem.statuses[:shipped], quantity: 5, unit_price: 1.00)
 
-    @discount = create(:bulk_discount, threshold: 10, percent_discount: 20, merchant_id: @merchant.id)
+    @discount = create(:bulk_discount, threshold: 10, percent_discount: 50, merchant_id: @merchant.id)
 
     # Result => item_1 discounted 20%
+    # Total Revenue => 10
   end
 
   def setup_discount_example_3
@@ -135,12 +139,13 @@ RSpec.describe Invoice do
     @invoice_item_1 = create(:invoice_item, invoice_id: @invoice.id, item_id: @item_1.id,
                             status: InvoiceItem.statuses[:shipped], quantity: 12, unit_price: 1.00)
     @invoice_item_2 = create(:invoice_item, invoice_id: @invoice.id, item_id: @item_2.id,
-                            status: InvoiceItem.statuses[:shipped], quantity: 15, unit_price: 1.00)
+                            status: InvoiceItem.statuses[:shipped], quantity: 16, unit_price: 1.00)
 
     @discount_1 = create(:bulk_discount, threshold: 10, percent_discount: 20, merchant_id: @merchant.id)
-    @discount_2 = create(:bulk_discount, threshold: 15, percent_discount: 30, merchant_id: @merchant.id)
+    @discount_2 = create(:bulk_discount, threshold: 15, percent_discount: 50, merchant_id: @merchant.id)
 
     # Result => item_1 discounted 20%, item_2 discounted 30%
+    # Total Revenue => 17.6
   end
 
   def setup_discount_example_4
@@ -152,12 +157,13 @@ RSpec.describe Invoice do
     @invoice_item_1 = create(:invoice_item, invoice_id: @invoice.id, item_id: @item_1.id,
                             status: InvoiceItem.statuses[:shipped], quantity: 12, unit_price: 1.00)
     @invoice_item_2 = create(:invoice_item, invoice_id: @invoice.id, item_id: @item_2.id,
-                            status: InvoiceItem.statuses[:shipped], quantity: 15, unit_price: 1.00)
+                            status: InvoiceItem.statuses[:shipped], quantity: 18, unit_price: 1.00)
 
-    @discount_1 = create(:bulk_discount, threshold: 10, percent_discount: 20, merchant_id: @merchant.id)
+    @discount_1 = create(:bulk_discount, threshold: 10, percent_discount: 50, merchant_id: @merchant.id)
     @discount_2 = create(:bulk_discount, threshold: 15, percent_discount: 15, merchant_id: @merchant.id)
 
-    # Result => item_1 discounted 20%, item_2 discounted 20% (discount_2 can never be applied)
+    # Result => item_1 discounted 50%, item_2 discounted 50% (discount_2 can never be applied)
+    # Total Revenue => 15
   end
 
   def setup_discount_example_5
@@ -175,10 +181,11 @@ RSpec.describe Invoice do
     @invoice_item_3 = create(:invoice_item, invoice_id: @invoice.id, item_id: @item_b1.id,
                             status: InvoiceItem.statuses[:shipped], quantity: 15, unit_price: 1.00)
 
-    @discount_1 = create(:bulk_discount, threshold: 10, percent_discount: 20, merchant_id: @merchant.id)
-    @discount_2 = create(:bulk_discount, threshold: 15, percent_discount: 30, merchant_id: @merchant.id)
+    @discount_1 = create(:bulk_discount, threshold: 10, percent_discount: 20, merchant_id: @merchant_a.id)
+    @discount_2 = create(:bulk_discount, threshold: 15, percent_discount: 30, merchant_id: @merchant_a.id)
     # Merchant B has no discounts
 
     # Result => item_a1 discounted 20%, item_a2 discounted 30%, item_b1 not discounted
+    # Total Revenue => 35.1
   end
 end
