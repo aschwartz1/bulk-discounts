@@ -15,7 +15,6 @@ class InvoiceItem < ApplicationRecord
   end
 
   def self.for_invoice_include_discount_id(invoice_id)
-    # TODO is this possible?
     discount_id_sql = Arel.sql(%{
       SELECT id
       FROM bulk_discounts
@@ -24,7 +23,7 @@ class InvoiceItem < ApplicationRecord
       LIMIT 1
     }.squish)
 
-    r = joins(:item)
+    joins(:item)
       .select("invoice_items.*, (#{discount_id_sql}) AS bulk_discount_id")
       .where(invoice_id: invoice_id)
   end
