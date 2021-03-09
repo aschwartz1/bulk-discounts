@@ -29,14 +29,4 @@ class Invoice < ApplicationRecord
     # TODO this is using ruby, but should be reworked to leverage the db?
     invoice_items.sum(&:revenue_including_discounts)
   end
-
-  def invoice_item_revenue(invoice_item_quantity, invoice_item_price, percent_discount)
-    tmp_revenue = (invoice_item_quantity * invoice_item_price)
-
-    if percent_discount.nil?
-      tmp_revenue
-    else
-      tmp_revenue - (tmp_revenue * (percent_discount / 100))
-    end
-  end
 end
