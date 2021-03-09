@@ -35,11 +35,4 @@ class InvoiceItem < ApplicationRecord
   def invoice_date
     invoice.created_at_view_format
   end
-
-  def revenue_including_discounts
-    percent_discount = BulkDiscount.for_merchant_quantity(item.merchant_id, quantity)
-    tmp_revenue = (quantity * unit_price)
-
-    return tmp_revenue - (tmp_revenue * percent_discount)
-  end
 end
