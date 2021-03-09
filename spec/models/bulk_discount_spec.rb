@@ -14,17 +14,32 @@ RSpec.describe BulkDiscount, type: :model do
   end
 
   describe 'class methods' do
-    describe '::for' do
+    describe '::for_merchant' do
       it 'returns bulk discounts for merchant' do
         merchant = create(:merchant)
         expected = create_list(:bulk_discount, 3, merchant: merchant)
 
-        expect(BulkDiscount.for(merchant.id)).to eq(expected)
+        expect(BulkDiscount.for_merchant(merchant.id)).to eq(expected)
       end
 
       it 'returns an empty array if no discounts exist for merchant' do
         merchant = create(:merchant)
-        expect(BulkDiscount.for(merchant.id)).to eq([])
+        expect(BulkDiscount.for_merchant(merchant.id)).to eq([])
+      end
+    end
+
+    describe '::for_merchant_quantity' do
+      it 'returns 0 if there are no discounts' do
+        merchant = create(:merchant)
+        expect(BulkDiscount.for_merchant_quantity(merchant.id, 5)).to eq(0)
+      end
+
+      it 'sorts correctly' do
+        merchant = create(:merchant)
+        discount_1 = create(:bulk_discount, threshold: 10, percent_discount: 10, merchant_id: merchant.id)
+        discount_2 = create(:bulk_discount, threshold: 5, percent_discount: 50, merchant_id: merchant.id)
+
+        expect(BulkDiscount.for_merchant_quantity(merchant.id, 10)).to eq(0.5)
       end
     end
   end
