@@ -76,5 +76,13 @@ RSpec.describe 'Merchant bulk discount index page' do
       expect(current_path).to eq(merchant_bulk_discounts_path(@merchant))
       expect(page).to_not have_selector("#discount-#{@discount_1.id}")
     end
+
+    it 'shows next 3 upcoming US holidays' do
+      visit merchant_bulk_discounts_path(@merchant)
+
+      within('#upcoming-holidays') do
+        expect(page.all('.holiday').size).to eq(3)
+      end
+    end
   end
 end
