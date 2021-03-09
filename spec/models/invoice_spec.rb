@@ -43,11 +43,34 @@ RSpec.describe Invoice do
       end
     end
 
-    describe '#total_revenue_with_discount' do
-      it 'can work when no discounts apply' do
+    describe '#total_revenue_with_discounts' do
+      it 'no valid discounts' do
         setup_discount_example_1
-        expect(@invoice.total_revenue_with_discount).to eq('change to the number 15')
-        # TODO test the other examples
+        expect(@invoice.total_revenue_with_discounts).to eq(15)
+      end
+
+      it '1 valid discount, applying to 1 of 2 invoice_items' do
+        # Total Revenue => 10
+        setup_discount_example_2
+        expect(@invoice.total_revenue_with_discounts).to eq(10)
+      end
+
+      it '2 valid discounts, each appying to an invoice_item' do
+        # Total Revenue => 17.6
+        setup_discount_example_3
+        expect(@invoice.total_revenue_with_discounts).to eq(17.6)
+      end
+
+      it 'unreachable discount, and lower quantity discount applies to invoice_item well above threshold' do
+        # Total Revenue => 15
+        setup_discount_example_4
+        expect(@invoice.total_revenue_with_discounts).to eq(15)
+      end
+
+      it 'multiple merchants on invoice, only one merchant has discounts' do
+        # Total Revenue => 35.1
+        setup_discount_example_5
+        expect(@invoice.total_revenue_with_discounts).to eq(35.1)
       end
     end
   end
@@ -126,7 +149,7 @@ RSpec.describe Invoice do
 
     @discount = create(:bulk_discount, threshold: 10, percent_discount: 50, merchant_id: @merchant.id)
 
-    # Result => item_1 discounted 20%
+    # Result => item_1 discounted 50%
     # Total Revenue => 10
   end
 
