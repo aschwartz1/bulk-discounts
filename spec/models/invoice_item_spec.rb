@@ -78,6 +78,37 @@ RSpec.describe InvoiceItem do
         expect(InvoiceItem.find_all_by_invoice(@invoice_1.id)).to eq([@invoice_item_1])
       end
     end
+
+    describe'::for_invlice_include_discount_id' do
+      it 'returns nil discount_id if no applicable discount exists' do
+        @merchant = create(:merchant)
+        @item = create(:item, merchant_id: @merchant.id)
+        @invoice = create(:invoice)
+        @invoice_item = create(:invoice_item, quantity: 10, unit_price: 2, invoice: @invoice, item: @item)
+
+        result = InvoiceItem.for_invoice_include_discount_id(@invoice.id)
+        expect(result.size).to eq(1)
+        expect(result.first.id).to eq(@invoice_item.id)
+        expect(result.first.bulk_discount_id).to be_nil
+      end
+
+      it 'works if discount exists' do
+        @merchant = create(:merchant)
+        @item_1 = create(:item, merchant_id: @merchant.id)
+        @item_2 = create(:item, merchant_id: @merchant.id)
+        @discount = create(:bulk_discount, threshold: 10, percent_discount: 50, merchant_id: @merchant.id)
+        @invoice = create(:invoice)
+        @invoice_item_1 = create(:invoice_item, quantity: 10, unit_price: 2, invoice: @invoice, item: @item_1)
+        @invoice_item_2 = create(:invoice_item, quantity: 5, unit_price: 2, invoice: @invoice, item: @item_2)
+
+        result = InvoiceItem.for_invoice_include_discount_id(@invoice.id)
+        expect(result.size).to eq(2)
+        expect(result.first.bulk_discount_id).to eq(@discount.id)
+        expect(result.first.id).to eq(@invoice_item_1.id)
+        expect(result.last.bulk_discount_id).to be_nil
+        expect(result.last.id).to eq(@invoice_item_2.id)
+      end
+    end
   end
 
   def setup

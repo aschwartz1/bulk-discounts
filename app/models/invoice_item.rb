@@ -14,6 +14,21 @@ class InvoiceItem < ApplicationRecord
     where(invoice_id: invoice_id)
   end
 
+  def self.for_invoice_include_discount_id(invoice_id)
+    # TODO is this possible?
+    discount_id_sql = Arel.sql(%{
+      SELECT id
+      FROM bulk_discounts
+      WHERE items.merchant_id = bulk_discounts.merchant_id AND bulk_discounts.threshold <= invoice_items.quantity
+      ORDER BY bulk_discounts.percent_discount DESC
+      LIMIT 1
+    }.squish)
+
+    r = joins(:item)
+      .select("invoice_items.*, (#{discount_id_sql}) AS bulk_discount_id")
+      .where(invoice_id: invoice_id)
+  end
+
   def item_name
     item.name
   end
