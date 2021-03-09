@@ -73,7 +73,6 @@ RSpec.describe 'As a merchant' do
       visit merchant_invoice_path(@merchant_1, @invoice_1)
 
       total_revenue = "Total Revenue: $#{'%.2f' % @invoice_1.total_revenue}"
-      require "pry"; binding.pry
 
       expect(page).to have_content(total_revenue)
     end
