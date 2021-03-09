@@ -4,6 +4,7 @@
   <p>Status: <%= @invoice.status_view_format %></p>
   <p>Date Created: <%= @invoice.created_at_view_format %></p>
   <p>Total Revenue: <%= number_to_currency((@invoice.total_revenue[0])) %></p>
+  <p>Total Revenue With Discounts: <%= number_to_currency((@invoice.total_revenue_with_discounts)) %></p>
 </section>
 
 <section id='invoice_status_update'>
