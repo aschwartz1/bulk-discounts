@@ -1,6 +1,7 @@
 <h1>Discount Info</h1>
 
 <section id='info'>
+  <p><%= link_to 'Edit', edit_merchant_bulk_discount_path(@merchant, @bulk_discount) %></p>
   <p>Name: <%= @bulk_discount.name %></p>
   <p>Threshold: <%= @bulk_discount.threshold %></p>
   <p>Percent Discount: <%= @bulk_discount.percent_discount %>%</p>
