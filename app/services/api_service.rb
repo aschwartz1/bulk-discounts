@@ -4,8 +4,6 @@ require 'pull'
 require 'commit'
 
 class ApiService
-
-  require "pry"; binding.pry
   def self.get_info(uri)
     response = Faraday.get("https://api.github.com/repos/avjohnston/little-esty-shop#{uri}")
     parsed = JSON.parse(response.body, symbolize_names: true)
