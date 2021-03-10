@@ -28,42 +28,6 @@ RSpec.describe InvoiceItem do
         expect(@invoice_item_2.unit_price_fix).to eq("5.00")
       end
     end
-
-    describe 'revenue_including_discounts' do
-      it 'calculates revenue when there are no discounts' do
-        @merchant = create(:merchant)
-        @item = create(:item, merchant_id: @merchant.id)
-        @discount = create(:bulk_discount, threshold: 10, percent_discount: 20, merchant_id: @merchant.id)
-        @invoice_item = create(:invoice_item, quantity: 5, unit_price: 2, item: @item)
-        # Result => no discounts applied
-        # Total Revenue => 10
-
-        expect(@invoice_item.revenue_including_discounts).to eq(10)
-      end
-
-      it 'calculates revenue when there is a discount' do
-        @merchant = create(:merchant)
-        @item = create(:item, merchant_id: @merchant.id)
-        @discount = create(:bulk_discount, threshold: 10, percent_discount: 50, merchant_id: @merchant.id)
-        @invoice_item = create(:invoice_item, quantity: 10, unit_price: 2, item: @item)
-        # Result => item_1 discounted 10%
-        # Total Revenue => 10
-
-        expect(@invoice_item.revenue_including_discounts).to eq(10)
-      end
-
-      it 'calculates revenue when there is an unreachable discount' do
-        @merchant = create(:merchant)
-        @item = create(:item, merchant_id: @merchant.id)
-        @discount_1 = create(:bulk_discount, threshold: 10, percent_discount: 10, merchant_id: @merchant.id)
-        @discount_2 = create(:bulk_discount, threshold: 5, percent_discount: 50, merchant_id: @merchant.id)
-        @invoice_item = create(:invoice_item, quantity: 10, unit_price: 2, item: @item)
-        # Result => item_1 discounted 50% (discount_2 is unreachable)
-        # Total Revenue => 10
-
-        expect(@invoice_item.revenue_including_discounts).to eq(10)
-      end
-    end
   end
 
   describe 'class methods' do
@@ -79,7 +43,7 @@ RSpec.describe InvoiceItem do
       end
     end
 
-    describe'::for_invlice_include_discount_id' do
+    describe '::for_invoice_include_discount_id' do
       it 'returns nil discount_id if no applicable discount exists' do
         @merchant = create(:merchant)
         @item = create(:item, merchant_id: @merchant.id)

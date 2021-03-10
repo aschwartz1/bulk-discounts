@@ -26,17 +26,34 @@ class Invoice < ApplicationRecord
   end
 
   def total_revenue_with_discounts
-    # TODO this is using ruby, but should be reworked to leverage the db?
-    invoice_items.sum(&:revenue_including_discounts)
+    invoice_items_with_discount_percent.sum do |invoice_item|
+      # TODO this method kinda belongs in `invoice_item` but an invoice_item instance
+      #   doesn't normally have the `percent_discount` column so it seems odd?
+      # OR I'd need this method to be a class method on the InvoiceItem and call the class method here...
+      #   Which option is better?
+      invoice_item_revenue(invoice_item.quantity, invoice_item.unit_price, invoice_item.percent_discount)
+    end
   end
 
-  def invoice_item_revenue(invoice_item_quantity, invoice_item_price, percent_discount)
-    tmp_revenue = (invoice_item_quantity * invoice_item_price)
+  def invoice_item_revenue(quantity, unit_price, raw_discount)
+    raw_discount = 0 if raw_discount.nil?
+    percent_discount = raw_discount / 100.0
+    tmp_revenue = (quantity * unit_price)
 
-    if percent_discount.nil?
-      tmp_revenue
-    else
-      tmp_revenue - (tmp_revenue * (percent_discount / 100))
-    end
+    return tmp_revenue - (tmp_revenue * percent_discount)
+  end
+
+  def invoice_items_with_discount_percent
+    discount_percent_sql = Arel.sql(%{
+      SELECT percent_discount
+      FROM bulk_discounts
+      WHERE items.merchant_id = bulk_discounts.merchant_id AND bulk_discounts.threshold <= invoice_items.quantity
+      ORDER BY bulk_discounts.percent_discount DESC
+      LIMIT 1
+    }.squish)
+
+    invoice_items
+      .joins(:item)
+      .select("invoice_items.*, (#{discount_percent_sql}) AS percent_discount")
   end
 end
