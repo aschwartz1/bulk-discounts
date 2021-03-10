@@ -167,7 +167,7 @@ RSpec.describe Invoice do
     @discount_1 = create(:bulk_discount, threshold: 10, percent_discount: 20, merchant_id: @merchant.id)
     @discount_2 = create(:bulk_discount, threshold: 15, percent_discount: 50, merchant_id: @merchant.id)
 
-    # Result => item_1 discounted 20%, item_2 discounted 30%
+    # Result => item_1 discounted 20%, item_2 discounted 50%
     # Total Revenue => 17.6
   end
 
