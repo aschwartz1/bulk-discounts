@@ -1,6 +1,8 @@
 class InvoiceItem < ApplicationRecord
   belongs_to :item
   belongs_to :invoice
+  # TODO add test
+  has_many :bulk_discounts, through: :item
 
   enum status: [:pending, :packaged, :shipped]
 
@@ -26,6 +28,15 @@ class InvoiceItem < ApplicationRecord
     joins(:item)
       .select("invoice_items.*, (#{discount_id_sql}) AS bulk_discount_id")
       .where(invoice_id: invoice_id)
+  end
+
+  # TODO add test
+  def discount_id
+    bulk_discounts
+      .where("#{self.quantity} >= threshold")
+      .order('percent_discount DESC')
+      .limit(1)
+      .pluck('id').first
   end
 
   def item_name

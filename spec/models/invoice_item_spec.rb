@@ -28,6 +28,12 @@ RSpec.describe InvoiceItem do
         expect(@invoice_item_2.unit_price_fix).to eq("5.00")
       end
     end
+
+    describe '#discount_id' do
+      it "cleans up unit price so they show two ending zeros" do
+        # TODO
+      end
+    end
   end
 
   describe 'class methods' do

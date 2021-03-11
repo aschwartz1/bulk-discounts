@@ -2,6 +2,8 @@ class Item < ApplicationRecord
   has_many :invoice_items
   has_many :invoices, through: :invoice_items
   belongs_to :merchant
+  # TODO add test
+  has_many :bulk_discounts, through: :merchant
 
   validates :name, presence: true, length: { minimum: 3 }
   validates :description, presence: true, length: { minimum: 15, maximum: 500 }
