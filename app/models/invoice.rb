@@ -22,6 +22,7 @@ class Invoice < ApplicationRecord
   end
 
   def total_revenue
+    # Arel snippet used at recommendation of deprecation warnings thrown by rails when testing
     revenue = invoice_items.pluck(Arel.sql("sum(invoice_items.quantity * invoice_items.unit_price) as total_revenue")).first
     if revenue.nil?
       0
