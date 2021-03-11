@@ -1,7 +1,6 @@
 class InvoiceItem < ApplicationRecord
   belongs_to :item
   belongs_to :invoice
-  # TODO add test
   has_many :bulk_discounts, through: :item
 
   enum status: [:pending, :packaged, :shipped]
@@ -16,6 +15,7 @@ class InvoiceItem < ApplicationRecord
     where(invoice_id: invoice_id)
   end
 
+  # TODO delete
   def self.for_invoice_include_discount_id(invoice_id)
     discount_id_sql = Arel.sql(%{
       SELECT id
