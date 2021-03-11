@@ -22,38 +22,23 @@ class Invoice < ApplicationRecord
   end
 
   def total_revenue
-    invoice_items.pluck(Arel.sql("sum(invoice_items.quantity * invoice_items.unit_price) as total_revenue"))
-  end
-
-  def total_revenue_with_discounts
-    invoice_items_with_discount_percent.sum do |invoice_item|
-      # TODO this method kinda belongs in `invoice_item` but an invoice_item instance
-      #   doesn't normally have the `percent_discount` column so it seems odd?
-      # OR I'd need this method to be a class method on the InvoiceItem and call the class method here...
-      #   Which option is better?
-      invoice_item_revenue(invoice_item.quantity, invoice_item.unit_price, invoice_item.percent_discount)
+    revenue = invoice_items.pluck(Arel.sql("sum(invoice_items.quantity * invoice_items.unit_price) as total_revenue")).first
+    if revenue.nil?
+      0
+    else
+      revenue
     end
   end
 
-  def invoice_item_revenue(quantity, unit_price, raw_discount)
-    raw_discount = 0 if raw_discount.nil?
-    percent_discount = raw_discount / 100.0
-    tmp_revenue = (quantity * unit_price)
-
-    return tmp_revenue - (tmp_revenue * percent_discount)
+  def total_revenue_with_discounts
+    total_revenue - total_discount
   end
 
-  def invoice_items_with_discount_percent
-    discount_percent_sql = Arel.sql(%{
-      SELECT percent_discount
-      FROM bulk_discounts
-      WHERE items.merchant_id = bulk_discounts.merchant_id AND bulk_discounts.threshold <= invoice_items.quantity
-      ORDER BY bulk_discounts.percent_discount DESC
-      LIMIT 1
-    }.squish)
-
-    invoice_items
-      .joins(:item)
-      .select("invoice_items.*, (#{discount_percent_sql}) AS percent_discount")
+  def total_discount
+    discount_snippet = 'invoice_items.quantity * invoice_items.unit_price * (percent_discount / 100.0)'
+    items_with_total_discount = invoice_items.joins(:bulk_discounts)
+      .where('invoice_items.quantity >= bulk_discounts.threshold')
+      .group('invoice_items.item_id')
+      .select("invoice_items.item_id, MAX(#{discount_snippet}) AS total_discount").sum(&:total_discount)
   end
 end

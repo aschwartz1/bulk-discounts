@@ -41,6 +41,23 @@ RSpec.describe Invoice do
         setup_little_esty_shop
         expect('%.2f' % @invoice_1.total_revenue).to eq('30.00')
       end
+
+      it 'returns 0 if there are no invoice_items' do
+        invoice = create(:invoice, status: :in_progress)
+        expect(invoice.total_revenue).to eq(0)
+      end
+    end
+
+    describe '#total_discount' do
+      it 'returns total revenue from a specific invoice' do
+        setup_discount_example_2
+        expect(@invoice.total_discount).to eq(5)
+      end
+
+      it 'returns 0 if there are no invoice_items' do
+        invoice = create(:invoice, status: :in_progress)
+        expect(invoice.total_discount).to eq(0)
+      end
     end
 
     describe '#total_revenue_with_discounts' do
